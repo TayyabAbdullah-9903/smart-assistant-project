@@ -1,3 +1,133 @@
-from django.shortcuts import render
+# chatbot/views.py
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from manuals.models import Manual
+from chatbot.models import ChatQuery
+from parser.retriever import find_relevant_text
+from chatbot.prompts import build_puml_prompt, build_explanation_prompt
+from chatbot.gemini_utils import call_gemini_text
+from uml.utils import render_plantuml_url
 
-# Create your views here.
+
+@api_view(["POST"])
+def query_chatbot(request):
+    manual_id = request.data.get("manual_id")
+    query = request.data.get("query")
+    user_type = request.data.get("user_type", "user")
+    # STEP 2: Identify user type automatically
+    role_prompt = f"""
+You are a classifier.
+
+Classify the speaker of the following message as either:
+- "technician" if it contains technical, diagnostic, or mechanical terms,
+- "user" if it sounds like a casual car owner or general question.
+
+User message:
+{query}
+
+Answer ONLY with either "technician" or "user".
+"""
+    user_type = call_gemini_text(role_prompt, model="gemini-2.0-flash", temperature=0.0, max_output_tokens=10)
+    user_type = user_type.strip().lower()
+    if user_type not in ["technician", "user"]:
+        user_type = "user"
+
+    type_prompt = f"""
+You are an assistant that chooses UML diagram types.
+
+Given this user request or text from a car manual, decide which UML diagram best represents it.
+Possible types: activity, sequence, usecase, class, state, component.
+
+User Query:
+{query}
+
+Answer ONLY with one word (the diagram type).
+"""
+    diagram_type = call_gemini_text(type_prompt, model="gemini-2.0-flash", temperature=0.0, max_output_tokens=20)
+    diagram_type = diagram_type.strip().lower()
+    if diagram_type not in ["activity", "sequence", "usecase", "class", "state", "component"]:
+        diagram_type = "activity"  # fallback default
+
+    # ---- Validation ----
+    if not manual_id or not query:
+        return Response({"error": "manual_id and query are required."}, status=400)
+
+    manual = Manual.objects.filter(id=manual_id).first()
+    if not manual:
+        return Response({"error": "Manual not found."}, status=404)
+
+    # ---- Step 1: Retrieve relevant text ----
+    procedure_text = clean_text(find_relevant_text(manual, query))
+    if len(procedure_text) > 4000:
+        procedure_text = procedure_text[:4000]
+    if not procedure_text or not procedure_text.strip():
+        return Response({
+            "error": "No relevant content found in the manual for this query.",
+            "manual_id": manual.id,
+            "query": query
+        }, status=400)
+
+    # ---- Step 2: Build UML prompt and call Gemini ----
+    puml_prompt = build_puml_prompt(diagram_type, procedure_text)
+    print("\n==========================")
+    print("PUML PROMPT SENT TO GEMINI:")
+    print(repr(puml_prompt[:1000]))  # print raw form (repr preserves hidden chars)
+    print("==========================\n")
+    
+
+    puml_code = call_gemini_text(
+        prompt_text=puml_prompt,
+        model="gemini-2.0-flash",
+        temperature=0.0,
+        max_output_tokens=1200
+    )
+    print(puml_code)
+
+    # ---- Step 3: Render UML image ----
+    try:
+        image_url = render_plantuml_url(puml_code)
+        print(image_url)  # paste into browser to view image
+    except Exception as e:
+        print("UML render failed:", e)
+        image_url = None
+
+    # ---- Step 4: Build explanation prompt and call Gemini again ----
+    explanation_prompt = build_explanation_prompt(user_type, procedure_text)
+    print("\n=== EXPLANATION PROMPT SENT ===\n", explanation_prompt[:800], "\n=========================\n")
+
+    explanation = call_gemini_text(
+        prompt_text=explanation_prompt,
+        model="gemini-2.0-flash",
+        temperature=0.2,
+        max_output_tokens=600
+    )
+    print(explanation)
+
+    # ---- Step 5: Save chat query record ----
+    q = ChatQuery.objects.create(
+        manual=manual,
+        query_text=query,
+        user_type=user_type,
+        response_text=explanation,
+        uml_code=puml_code,
+        diagram_url=image_url
+    )
+
+    # ---- Step 6: Return result ----
+    return Response({
+        "response": explanation,
+        "uml_code": puml_code,
+        "user_type":user_type,
+        "diagram_type":diagram_type,
+        "uml_image": image_url,
+        "query_id": q.id
+    })
+
+def clean_text(t: str) -> str:
+    import re
+    if not t:
+        return ""
+    # Remove non-printable and double spaces
+    t = re.sub(r"[^\x20-\x7E\n]", "", t)
+    t = re.sub(r"\s+", " ", t).strip()
+    return t
