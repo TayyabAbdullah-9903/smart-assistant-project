@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -24,6 +24,8 @@ SECRET_KEY = 'django-insecure-l)*p1yyhrvi_r4&hsumf21%26_5ud@_22pr+p@v-e!+wpyd)(l
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret")
+DEBUG = os.getenv("DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = []
 
@@ -43,6 +45,9 @@ INSTALLED_APPS = [
     'chatbot',
     'uml',
     ]
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
