@@ -13,7 +13,7 @@ def upload_manual(request):
     if not file:
         return Response({"error":"file required"}, status=400)
     manual = Manual.objects.create(file=file, filename=file.name, uploaded_by_type=uploaded_by_type)
-    # parse right away (synchronously)
+    
     parse_manual_file(manual)
     serializer = ManualSerializer(manual)
     return Response(serializer.data, status=201)

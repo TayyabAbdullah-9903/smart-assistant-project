@@ -7,6 +7,8 @@ from parser.retriever import find_relevant_text
 from chatbot.prompts import build_puml_prompt, build_explanation_prompt
 from chatbot.gemini_utils import call_gemini_text
 from uml.utils import render_plantuml_url
+from classification.utils import infer_pi_class
+from classification.models import PIClassification
 
 
 @api_view(["POST"])
@@ -111,6 +113,15 @@ Answer ONLY with one word (the diagram type).
         response_text=explanation,
         uml_code=puml_code,
         diagram_url=image_url
+    )
+    pi_data = infer_pi_class(procedure_text)
+    PIClassification.objects.create(
+        manual=manual,
+        query=q,
+        intrinsic_product=pi_data.get("intrinsic_product"),
+        extrinsic_product=pi_data.get("extrinsic_product"),
+        intrinsic_information=pi_data.get("intrinsic_information"),
+        extrinsic_information=pi_data.get("extrinsic_information"),
     )
 
     # ---- Step 6: Return result ----

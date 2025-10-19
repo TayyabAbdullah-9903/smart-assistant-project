@@ -30,7 +30,7 @@ DEBUG = True
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret")
 DEBUG = os.getenv("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['127.0.0.1','blotchier-unterrible-estell.ngrok-free.dev']
 
 
 # Application definition
@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'integration',
     'chatbot',
     'uml',
+    'classification',
     ]
 
 MEDIA_URL = "/media/"
