@@ -24,12 +24,12 @@ def build_explanation_prompt(user_type: str, procedure_text: str) -> str:
         role_instr = (
             "You are an experienced automotive technician. "
             "Explain the following procedure conceptually with technical insight, "
-            "without offering real repair instructions."
+            "without offering real repair instructions. "
         )
     else:
         role_instr = (
             "You are a friendly assistant explaining to a car owner conceptually what this procedure means, "
-            "without giving actual operational steps."
+            "without giving actual operational steps. You are to give a quick guide responding to the user query."
         )
 
     return f"{role_instr}\n\n{disclaimer}\n\nProcedure:\n{procedure_text}"

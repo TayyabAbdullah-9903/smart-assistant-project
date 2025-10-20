@@ -9,6 +9,9 @@ from chatbot.gemini_utils import call_gemini_text
 from uml.utils import render_plantuml_url
 from classification.utils import infer_pi_class
 from classification.models import PIClassification
+import requests, json
+from datetime import datetime
+
 
 
 @api_view(["POST"])
@@ -60,8 +63,12 @@ Answer ONLY with one word (the diagram type).
 
     # ---- Step 1: Retrieve relevant text ----
     procedure_text = clean_text(find_relevant_text(manual, query))
-    if len(procedure_text) > 4000:
-        procedure_text = procedure_text[:4000]
+    print("\n=== MANUAL DEBUG INFO ===")
+    print("Manual Name:", manual.name if hasattr(manual, "name") else manual.id)
+    print("Query:", query)
+    print("Retrieved Text Preview:\n", procedure_text[:1000])
+    print("==========================\n")
+
     if not procedure_text or not procedure_text.strip():
         return Response({
             "error": "No relevant content found in the manual for this query.",
@@ -80,7 +87,7 @@ Answer ONLY with one word (the diagram type).
     puml_code = call_gemini_text(
         prompt_text=puml_prompt,
         model="gemini-2.0-flash",
-        temperature=0.0,
+        temperature=0.7,
         max_output_tokens=1200
     )
     print(puml_code)
@@ -100,7 +107,7 @@ Answer ONLY with one word (the diagram type).
     explanation = call_gemini_text(
         prompt_text=explanation_prompt,
         model="gemini-2.0-flash",
-        temperature=0.2,
+        temperature=0.7,
         max_output_tokens=600
     )
     print(explanation)
@@ -115,7 +122,11 @@ Answer ONLY with one word (the diagram type).
         diagram_url=image_url
     )
     pi_data = infer_pi_class(procedure_text)
-    PIClassification.objects.create(
+    intrinsic_product=pi_data.get("intrinsic_product")
+    extrinsic_product=pi_data.get("extrinsic_product")
+    intrinsic_information=pi_data.get("intrinsic_information")
+    extrinsic_information=pi_data.get("extrinsic_information")
+    pi = PIClassification.objects.create(
         manual=manual,
         query=q,
         intrinsic_product=pi_data.get("intrinsic_product"),
@@ -124,6 +135,40 @@ Answer ONLY with one word (the diagram type).
         extrinsic_information=pi_data.get("extrinsic_information"),
     )
 
+    pi_summary_prompt = f"""
+You are an automotive manual classifier.
+
+Given this PI-Class metadata, summarize it into one of these top-level categories:
+Maintenance, Safety, Diagnostics, Indicators, Controls, Electrical, Engine, Transmission, or Other.
+
+PI-Class JSON:
+{pi}
+
+Answer with only one word.
+"""
+
+    pi_class_simple = call_gemini_text(
+    prompt_text=pi_summary_prompt,
+    model="gemini-2.0-flash",
+    temperature=0.0,
+    max_output_tokens=10
+).strip()
+
+    log_to_zapier({
+    "manual_id": manual.id,
+    "query": query,
+    "user_type": user_type,
+    "diagram_type": diagram_type,
+    "pi_class": pi_class_simple,
+    "intrinsic_product":intrinsic_product,  # e.g. “Maintenance”
+    "extrinsic_product":extrinsic_product,
+    "intrinsic_info":intrinsic_information,
+    "extrinsic_info":extrinsic_information,
+    "response": explanation,
+    "uml_image": image_url,
+    "feedback": "Good"
+})
+
     # ---- Step 6: Return result ----
     return Response({
         "response": explanation,
@@ -131,7 +176,14 @@ Answer ONLY with one word (the diagram type).
         "user_type":user_type,
         "diagram_type":diagram_type,
         "uml_image": image_url,
-        "query_id": q.id
+        "pi_class": pi_class_simple,  # e.g. “Maintenance”
+            "intrinsic_product":intrinsic_product,  # e.g. “Maintenance”
+    "extrinsic_product":extrinsic_product,
+    "intrinsic_info":intrinsic_information,
+    "extrinsic_info":extrinsic_information,
+        "query_id": q.id,
+        "feedback": "Good"
+
     })
 
 def clean_text(t: str) -> str:
@@ -142,3 +194,26 @@ def clean_text(t: str) -> str:
     t = re.sub(r"[^\x20-\x7E\n]", "", t)
     t = re.sub(r"\s+", " ", t).strip()
     return t
+
+def log_to_zapier(data):
+    ZAPIER_WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/25056454/ur1s5ej/"  # Replace with your actual Zapier URL
+    try:
+        print(data)
+        payload = {
+            "timestamp": datetime.now().isoformat(),
+            "manual_id": data.get("manual_id"),
+            "query": data.get("query"),
+            "user_type": data.get("user_type"),
+            "diagram_type": data.get("diagram_type"),
+            "pi_class": data.get("pi_class"),  # e.g. “Maintenance”
+            "intrinsic_product":data.get("intrinsic_product"),  # e.g. “Maintenance”
+            "extrinsic_product":data.get("extrinsic_product"),
+            "intrinsic_info":data.get("intrinsic_information"),
+            "extrinsic_info":data.get("extrinsic_information"),
+            "response": data.get("response"),
+            "uml_image": data.get("uml_image"),
+            "feedback": data.get("feedback")
+        }
+        requests.post(ZAPIER_WEBHOOK_URL, json=payload)
+    except Exception as e:
+        print("Zapier logging failed:", e)

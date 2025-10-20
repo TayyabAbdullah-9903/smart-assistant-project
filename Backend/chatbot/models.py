@@ -9,3 +9,4 @@ class ChatQuery(models.Model):
     uml_code = models.TextField(null=True, blank=True)
     diagram_url = models.URLField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    feedback = models.CharField(max_length=10, null=True, blank=True,default="Good")
