@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ manual.title }}</title>
+</head>
+<body>
+<h1>{{ manual.title }}</h1>
+<p>{{ manual.description }}</p>
+<p><a href="{{ manual.file.url }}">?? Download Manual</a></p>
+
+<h2>Queries related to this manual</h2>
+<ul>
+    {% for q in queries %}
+        <li>
+            <b>{{ q.query_text }}</b> — {{ q.user_type }} | {{ q.diagram_type }}
+            <br> <img src="{{ q.diagram_url }}" width="300">
+            <br> <i>{{ q.response_text|truncatewords:30 }}</i>
+        </li>
+    {% empty %}
+        <li>No queries yet.</li>
+    {% endfor %}
+</ul>
+<a href="{% url 'portal_home' %}">? Back</a>
+</body>
+</html>

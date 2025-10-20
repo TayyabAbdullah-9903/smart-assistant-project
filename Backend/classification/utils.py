@@ -1,33 +1,56 @@
 from chatbot.gemini_utils import call_gemini_text
+import re
+import json
 
 def infer_pi_class(procedure_text: str) -> dict:
     """
     Uses Gemini to generate PI-Class metadata from a manual section or query.
     """
     prompt = f"""
-You are an automotive manual information analyst.
+You are an **automotive manual information analyst**.
 
-Given the following text, classify it according to the PI-Class schema:
+Your task is to classify the following vehicle-related text into the **PI-Class schema**.
 
-1. Intrinsic Product Class — the actual physical or software component being described.
-2. Extrinsic Product Class — the context, external factors, or environment interacting with it.
-3. Intrinsic Information Class — the type of information (diagnostic, procedural, descriptive, etc.).
-4. Extrinsic Information Class — how the information is presented (warning, symbol, display, etc.).
+Return your answer **ONLY as a compact valid JSON object**, without any explanations, notes, or markdown.
 
-Respond strictly in JSON with these keys:
-intrinsic_product, extrinsic_product, intrinsic_information, extrinsic_information.
-Text:
+Schema:
+{{
+  "intrinsic_product": "<main vehicle component or subsystem>",
+  "extrinsic_product": "<environmental or contextual factor>",
+  "intrinsic_information": "<type of information — e.g., diagnostic, procedural, descriptive>",
+  "extrinsic_information": "<presentation mode — e.g., warning, display, symbol, note>"
+}}
+
+Example output:
+{{
+  "intrinsic_product": "parking sensors",
+  "extrinsic_product": "vehicle surroundings",
+  "intrinsic_information": "diagnostic",
+  "extrinsic_information": "warning"
+}}
+
+Now classify this text:
+---
 {procedure_text}
+---
+Respond **only with the JSON**.
 """
 
-    result = call_gemini_text(prompt, model="gemini-2.0-flash", temperature=0.0, max_output_tokens=200)
+    import json
+    result = call_gemini_text(prompt, model="gemini-2.0-flash", temperature=0.1, max_output_tokens=200)
+    
     try:
-        import json
-        return json.loads(result)
-    except Exception:
+        json_str = result.strip()
+        # Attempt to extract JSON even if model wrapped it in prose
+        match = re.search(r"\{.*\}", json_str, re.DOTALL)
+        if match:
+            json_str = match.group(0)
+        return json.loads(json_str)
+    except Exception as e:
+        print("PI Classification parse error:", e, "Raw:", result)
         return {
-            "intrinsic_product": None,
-            "extrinsic_product": None,
-            "intrinsic_information": None,
-            "extrinsic_information": None,
+            "intrinsic_product": "unknown",
+            "extrinsic_product": "unknown",
+            "intrinsic_information": "unknown",
+            "extrinsic_information": "unknown",
         }

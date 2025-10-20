@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Manual Assistant Portal</title>
+    <link rel="stylesheet" href="/static/portal/styles.css">
+</head>
+<body>
+    <h1>Smart Manual Assistant – Content Delivery Portal</h1>
+
+    <h2>?? Manuals</h2>
+    <a href="{% url 'upload_manual' %}">+ Upload New Manual</a>
+    <ul>
+        {% for manual in manuals %}
+            <li>
+                <a href="{% url 'manual_detail' manual.id %}">{{ manual.title }}</a>
+                <small>Uploaded on {{ manual.created_at }}</small>
+            </li>
+        {% empty %}
+            <li>No manuals uploaded yet.</li>
+        {% endfor %}
+    </ul>
+
+    <h2>?? Recent Queries</h2>
+    <ul>
+        {% for q in queries %}
+            <li>
+                <b>{{ q.query_text }}</b> ? {{ q.user_type }} ({{ q.diagram_url|default:"No diagram" }})
+            </li>
+        {% empty %}
+            <li>No queries yet.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

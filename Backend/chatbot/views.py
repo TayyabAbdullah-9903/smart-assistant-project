@@ -136,15 +136,15 @@ Answer ONLY with one word (the diagram type).
     )
 
     pi_summary_prompt = f"""
-You are an automotive manual classifier.
+You are an automotive domain classifier.
 
 Given this PI-Class metadata, summarize it into one of these top-level categories:
-Maintenance, Safety, Diagnostics, Indicators, Controls, Electrical, Engine, Transmission, or Other.
+Maintenance, Safety, Diagnostics, Indicators, Controls, Electrical, Engine, Transmission, Other.
+
+Return only one of those words, nothing else.
 
 PI-Class JSON:
-{pi}
-
-Answer with only one word.
+{json.dumps(pi_data, indent=2)}
 """
 
     pi_class_simple = call_gemini_text(

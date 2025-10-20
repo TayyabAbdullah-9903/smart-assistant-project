@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'chatbot',
     'uml',
     'classification',
+    'portal'
     ]
 
 MEDIA_URL = "/media/"
