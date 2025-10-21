@@ -35,7 +35,7 @@ DEBUG = True
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret")
 DEBUG = os.getenv("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = ['127.0.0.1','blotchier-unterrible-estell.ngrok-free.dev']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
