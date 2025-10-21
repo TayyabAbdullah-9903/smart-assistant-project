@@ -12,6 +12,7 @@ from classification.models import PIClassification
 import requests, json
 from datetime import datetime
 
+from uml.utils_save import save_uml_file
 
 
 @api_view(["POST"])
@@ -121,6 +122,8 @@ Answer ONLY with one word (the diagram type).
         uml_code=puml_code,
         diagram_url=image_url
     )
+
+    uml_file_url = save_uml_file(puml_code, q.id, diagram_type)
     pi_data = infer_pi_class(procedure_text)
     intrinsic_product=pi_data.get("intrinsic_product")
     extrinsic_product=pi_data.get("extrinsic_product")
@@ -166,6 +169,7 @@ PI-Class JSON:
     "extrinsic_info":extrinsic_information,
     "response": explanation,
     "uml_image": image_url,
+    "uml_file_url": uml_file_url,
     "feedback": "Good"
 })
 
@@ -182,6 +186,7 @@ PI-Class JSON:
     "intrinsic_info":intrinsic_information,
     "extrinsic_info":extrinsic_information,
         "query_id": q.id,
+
         "feedback": "Good"
 
     })
@@ -212,6 +217,7 @@ def log_to_zapier(data):
             "extrinsic_info":data.get("extrinsic_info"),
             "response": data.get("response"),
             "uml_image": data.get("uml_image"),
+            "uml_file_url": data.get("uml_file_url"),
             "feedback": data.get("feedback")
         }
         requests.post(ZAPIER_WEBHOOK_URL, json=payload)

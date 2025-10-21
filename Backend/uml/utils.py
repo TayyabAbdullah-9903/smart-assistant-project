@@ -3,6 +3,7 @@ import zlib
 import sys
 from typing import Optional
 import urllib.parse
+from uml.utils_save import save_uml_file
 
 # PlantUML uses a custom 6-bit encoding alphabet:
 _ENCODE_TABLE = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
