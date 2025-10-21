@@ -208,8 +208,8 @@ def log_to_zapier(data):
             "pi_class": data.get("pi_class"),  # e.g. “Maintenance”
             "intrinsic_product":data.get("intrinsic_product"),  # e.g. “Maintenance”
             "extrinsic_product":data.get("extrinsic_product"),
-            "intrinsic_info":data.get("intrinsic_information"),
-            "extrinsic_info":data.get("extrinsic_information"),
+            "intrinsic_info":data.get("intrinsic_info"),
+            "extrinsic_info":data.get("extrinsic_info"),
             "response": data.get("response"),
             "uml_image": data.get("uml_image"),
             "feedback": data.get("feedback")

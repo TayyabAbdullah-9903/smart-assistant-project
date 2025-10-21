@@ -8,15 +8,28 @@ def build_puml_prompt(diagram_type: str, procedure_text: str) -> str:
 
 
 def build_explanation_prompt(user_type: str, procedure_text: str) -> str:
+    """
+    Builds a contextually accurate explanation prompt for Gemini
+    based on the user's role type and the procedural content.
+    """
+
     if user_type.lower() == "technician":
         role_instr = (
-            "Explain this procedure concisely with technical detail for a technician. "
-            "Focus on key steps and considerations."
+            "You are a certified automotive service technician.\n"
+            "Explain this procedure in a clear, technically accurate way.\n"
+            "Include detailed workflows, system interactions, and any diagnostic or maintenance steps.\n"
+            "Use proper technical terminology and reference possible faults or component relationships when relevant.\n"
+            "Your explanation should help a trained technician perform the task safely and efficiently.\n"
+            "Focus on step-by-step clarity with diagnostic context when appropriate."
         )
     else:
         role_instr = (
-            "Explain this procedure briefly in simple terms for a car owner. "
-            "Provide a quick, clear overview."
+            "You are explaining this to a regular car owner (everyday driver) with no technical background.\n"
+            "Provide a simple, easy-to-follow explanation using plain language (around a 6th-grade reading level).\n"
+            "Focus on safety tips, everyday usage, and clear step-by-step instructions.\n"
+            "Avoid jargon. Use short sentences, friendly tone, and relatable analogies.\n"
+            "Summarize the main idea in 1–2 paragraphs, and format as a quick guide or FAQ-style explanation."
         )
 
     return f"{role_instr}\n\nProcedure:\n{procedure_text}"
+
