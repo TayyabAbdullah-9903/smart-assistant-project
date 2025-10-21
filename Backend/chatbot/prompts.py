@@ -1,10 +1,30 @@
-def build_puml_prompt(diagram_type: str, procedure_text: str) -> str:
+def build_puml_prompt(diagram_type: str, procedure_text: str, query: str = "") -> str:
+    """
+    Generates a PlantUML prompt based on UML Selection Schema:
+    - Considers query keywords (how, what, why, when)
+    - Distinguishes procedural vs. structural content
+    - Identifies temporal and component relationships
+    """
+    
+    # Optional: annotate query analysis inside prompt (for ChatGPT reasoning)
+    query_analysis = ""
+    if query:
+        query_analysis = (
+            f"Analyze the following query to determine UML relevance:\n{query}\n"
+            "Focus on:\n"
+            "- Keywords (how, what, why, when)\n"
+            "- Procedural vs. structural intent\n"
+            "- Temporal sequence and component relationships\n\n"
+        )
+    
     return (
-        f"Generate a **{diagram_type}** diagram in PlantUML for this procedure.\n"
+        f"{query_analysis}"
+        f"Generate a **{diagram_type}** diagram in PlantUML for the procedure or content below.\n"
         f"Output ONLY PlantUML code starting with @startuml and ending with @enduml.\n"
         f"No explanations, markdown, or comments.\n\n"
-        f"Procedure:\n{procedure_text}"
+        f"Content:\n{procedure_text}"
     )
+
 
 
 def build_explanation_prompt(user_type: str, procedure_text: str) -> str:
@@ -28,7 +48,7 @@ def build_explanation_prompt(user_type: str, procedure_text: str) -> str:
             "Provide a simple, easy-to-follow explanation using plain language (around a 6th-grade reading level).\n"
             "Focus on safety tips, everyday usage, and clear step-by-step instructions.\n"
             "Avoid jargon. Use short sentences, friendly tone, and relatable analogies.\n"
-            "Summarize the main idea in 1–2 paragraphs, and format as a quick guide or FAQ-style explanation."
+            "Summarize the main idea in 1-2 paragraphs, and format as a quick guide or FAQ-style explanation."
         )
 
     return f"{role_instr}\n\nProcedure:\n{procedure_text}"
