@@ -196,7 +196,7 @@ def clean_text(t: str) -> str:
     return t
 
 def log_to_zapier(data):
-    ZAPIER_WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/25056454/ur1s5ej/"  # Replace with your actual Zapier URL
+    ZAPIER_WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/25069512/uriqugw/"  # Replace with your actual Zapier URL
     try:
         print(data)
         payload = {

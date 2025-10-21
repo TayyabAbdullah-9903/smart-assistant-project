@@ -5,8 +5,8 @@ def build_puml_prompt(diagram_type: str, procedure_text: str, query: str = "") -
     - Distinguishes procedural vs. structural content
     - Identifies temporal and component relationships
     """
-    
-    # Optional: annotate query analysis inside prompt (for ChatGPT reasoning)
+
+
     query_analysis = ""
     if query:
         query_analysis = (
