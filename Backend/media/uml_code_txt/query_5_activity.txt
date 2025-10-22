@@ -1,0 +1,24 @@
+@startuml
+(*) --> "Tire/Wheel Change"
+--> "Enter tire details in tire settings"
+--> IF "Tires with special approval?" THEN
+  --> [Yes] "Reset TPMS"
+  --> "Compare predefined target pressures with actual tire pressures"
+  --> "Monitor tire pressure"
+  --> IF "Tire pressure drops?" THEN
+    --> [Yes] "Issue warning"
+    --> (*)
+  ELSE
+    --> [No] (*)
+  ENDIF
+ELSE
+  --> [No] "Compare predefined target pressures with actual tire pressures"
+  --> "Monitor tire pressure"
+  --> IF "Tire pressure drops?" THEN
+    --> [Yes] "Issue warning"
+    --> (*)
+  ELSE
+    --> [No] (*)
+  ENDIF
+ENDIF
+@enduml
