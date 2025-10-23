@@ -20,11 +20,17 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import re_path
 from django.views.static import serve
+from django.http import HttpResponse
+
+
+def health_check(request):
+    return HttpResponse("OK", status=200)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('manuals.urls')),
-    path('', include('chatbot.urls')),
+    path('', health_check), 
+    path('manual/', include('manuals.urls')),
+    path('chatbot/', include('chatbot.urls')),
     path("portal/", include("portal.urls")),
 
 ]

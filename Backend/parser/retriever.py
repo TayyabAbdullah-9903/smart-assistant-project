@@ -1,10 +1,11 @@
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
 import google.generativeai as genai
 from parser.models import ManualText
 from django.conf import settings
 
 def find_relevant_text(manual, query: str, top_n=3):
+    from sklearn.metrics.pairwise import cosine_similarity
+
     """
     Uses Gemini embeddings to semantically find the most relevant manual sections.
     Falls back to keyword search if embeddings fail.
