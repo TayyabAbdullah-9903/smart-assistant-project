@@ -67,11 +67,7 @@ Answer ONLY with one word (the diagram type).
 
     # STEP 3: Retrieve relevant text
     procedure_text = clean_text(find_relevant_text(manual, query))
-    print("\n=== MANUAL DEBUG INFO ===")
-    print("Manual Name:", manual.name if hasattr(manual, "name") else manual.id)
-    print("Query:", query)
-    print("Retrieved Text Preview:\n", procedure_text[:1000])
-    print("==========================\n")
+
 
     if not procedure_text or not procedure_text.strip():
         return Response({
@@ -105,7 +101,6 @@ Answer ONLY with one word (the diagram type).
 
     # STEP 6: Explanation generation
     explanation_prompt = build_explanation_prompt(user_type, procedure_text)
-    print("\n=== EXPLANATION PROMPT SENT ===\n", explanation_prompt[:800], "\n=========================\n")
 
     explanation = call_gemini_text(
         prompt_text=explanation_prompt,

@@ -36,7 +36,7 @@ def build_explanation_prompt(user_type: str, procedure_text: str) -> str:
     if user_type.lower() == "technician":
         role_instr = (
             "You are a certified automotive service technician.\n"
-            "Explain this procedure in a clear, technically accurate way.\n"
+            "Explain this procedure in a clear, technically accurate way. But also dont drag your answer so much that it is very big. Concise.\n"
             "Include detailed workflows, system interactions, and any diagnostic or maintenance steps.\n"
             "Use proper technical terminology and reference possible faults or component relationships when relevant.\n"
             "Your explanation should help a trained technician perform the task safely and efficiently.\n"
@@ -46,9 +46,10 @@ def build_explanation_prompt(user_type: str, procedure_text: str) -> str:
         role_instr = (
             "You are explaining this to a regular car owner (everyday driver) with no technical background.\n"
             "Provide a simple, easy-to-follow explanation using plain language (around a 6th-grade reading level).\n"
-            "Focus on safety tips, everyday usage, and clear step-by-step instructions.\n"
+            "Focus on the question asked and give answer according to the relevant text provided.\n"
             "Avoid jargon. Use short sentences, friendly tone, and relatable analogies.\n"
-            "Summarize the main idea in 1-2 paragraphs, and format as a quick guide or FAQ-style explanation."
+            "Summarize the main idea in 1-2 paragraphs, and format as a quick guide or FAQ-style explanation.\n"
+            "Do make it as concise as you can."
         )
 
     return f"{role_instr}\n\nProcedure:\n{procedure_text}"
