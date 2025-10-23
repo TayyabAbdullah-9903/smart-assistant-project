@@ -89,7 +89,7 @@ Answer ONLY with one word (the diagram type).
 
     puml_code = call_gemini_text(
         prompt_text=puml_prompt,
-        model="gemini-2.5-pro",
+        model="gemini-2.0-flash",
         temperature=0.7,
         max_output_tokens=1200
     )
